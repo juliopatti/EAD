@@ -3,6 +3,9 @@ links.txt
 .env
 venv
 test.ipynb
+test.py
+test.html
 __pycache__/
 acidentes.html
 data
+geo_rod.html
