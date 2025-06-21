@@ -14,12 +14,12 @@ import meteorologico
 from utils import organize_csvs_by_year
 
 def main():
-    # # executa o pipeline de acidentes
-    # acidentes.main()
-    # # executa o segundo script (DNIT, geoloc)
-    # geo_rod.main()
-    # # executa o pipeline meteorológico
-    # meteorologico.main()
+    # executa o pipeline de acidentes
+    acidentes.main()
+    # executa o segundo script (DNIT, geoloc)
+    geo_rod.main()
+    # executa o pipeline meteorológico
+    meteorologico.main()
     
     # correção de separação de anos
     organize_csvs_by_year(base_dir="data/meteorologia")
