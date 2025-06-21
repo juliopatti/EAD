@@ -5,9 +5,8 @@ import requests
 from tqdm import tqdm
 from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 from pathlib import PurePosixPath
-from urllib.parse import urljoin
 from utils import pode_rastrear
 
 # --- CONFIGURAÇÕES ---
