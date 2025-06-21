@@ -2,80 +2,110 @@ import os
 import time
 import pandas as pd
 import requests
+from tqdm import tqdm
 from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 from pathlib import PurePosixPath
+from urllib.parse import urljoin
+from utils import pode_rastrear
 
-# URL de busca acidentes
-search_url = (
-    "https://dados.antt.gov.br/dataset"
+# --- CONFIGURAÇÕES ---
+BASE_URL = "https://dados.antt.gov.br/dataset"
+SEARCH_URL = (
+    f"{BASE_URL}"
     "/acidentes-rodovias"
 )
+HTML_PATH = "data/acidentes.html"
+DOWNLOAD_DIR = "data/acidentes"
+ROBOTS_URL = urljoin(BASE_URL, "/robots.txt")
+USER_AGENT  = "MeuScraper/1.0 (mailto:julio.patti@gmail.com)"
+# ----------------------
 
-os.makedirs("data", exist_ok=True)
-
-with sync_playwright() as pw:
-    browser = pw.chromium.launch(headless=False)
-    page    = browser.new_page()
+def salva_html(search_url: str, html_path: str) -> None:
+    """Abre a página com Playwright, salva o HTML localmente."""
     
-    time.sleep(11)
-    page.goto(search_url, timeout=60000)
-    page.wait_for_load_state("networkidle")
-    html = page.content()
+    # verifica permissão de acesso à página
+    if not pode_rastrear(search_url, user_agent=USER_AGENT, robots_url=ROBOTS_URL):
+        raise RuntimeError(f"Bloqueado pelo robots.txt: {search_url}")
+    os.makedirs(os.path.dirname(html_path), exist_ok=True)
 
-    # Salva em data/acidentes.html
-    html_path = "data/acidentes.html"
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(headless=False)
+        context = browser.new_context(user_agent=USER_AGENT)
+        page = context.new_page()
+        
+        time.sleep(11)
+        page.goto(search_url, timeout=60000)
+        page.wait_for_load_state("networkidle")
+        html = page.content()
+        browser.close()
+
     with open(html_path, "w", encoding="utf-8") as f:
         f.write(html)
+    print(f"Salvando HTML de: {search_url} → {html_path}")
 
-    print(f"HTML de acidentes salvo em {html_path}\n")
-    browser.close()
+def get_dataframe(html_path: str) -> pd.DataFrame:
+    """Lê o HTML salvo e extrai URLs de CSV num DataFrame."""
+    with open(html_path, "r", encoding="utf-8") as f:
+        soup = BeautifulSoup(f, "html.parser")
 
+    selector = "section#dataset-resources ul.resource-list li.resource-item"
+    urls, exts = [], []
 
-# Lê o HTML
-with open(html_path, "r", encoding="utf-8") as f:
-    soup = BeautifulSoup(f, "html.parser")
+    for li in soup.select(selector):
+        a = li.select_one("a.resource-url-analytics")
+        if not a:
+            continue
 
-# Seletor CSS que pega cada <li class="resource-item">
-selector = "section#dataset-resources ul.resource-list li.resource-item"
+        url = a["href"].strip()
+        ext = PurePosixPath(urlparse(url).path).suffix.lstrip(".").lower()
+        if ext == "csv":
+            urls.append(url)
+            exts.append(ext)
 
-urls, exts= [], []
-for li in soup.select(selector):
-    
-    # Título vem no atributo title do <a class="heading">
-    heading = li.select_one("a.heading")
-    title   = heading["title"].strip()
-    print(f"{title}")
-    a = li.select_one("a.resource-url-analytics")
-    if not a:
-        print('not a')
-        continue
-    url = a["href"].strip()
-    ext = PurePosixPath(url).suffix.lstrip(".").lower()
-    if ext=="csv":
-        urls.append(url), exts.append(url.split(".")[-1])
+    df = pd.DataFrame({"url": urls, "ext": exts})
+    print(f"Encontrados {len(df)} arquivos CSV")
+    return df.reset_index(drop=True)
 
-df_acidentes = pd.DataFrame({"url": urls, "ext": exts})
-df_acidentes = df_acidentes.reset_index(drop=True)
+def download_csvs(df: pd.DataFrame, download_dir: str) -> None:
+    """Baixa cada CSV do DataFrame para a pasta especificada."""
+    os.makedirs(download_dir, exist_ok=True)
+    errors = 0
 
-download_dir = os.path.join("data", "acidentes")
-os.makedirs(download_dir, exist_ok=True)
-
-urls = df_acidentes['url'].tolist()
-for url in urls:
-    path = urlparse(url).path
-    filename = PurePosixPath(path).name
-    dest = os.path.join(download_dir, filename)
-    
-    print(f"Baixando {filename} …", end=" ")
-    time.sleep(11) 
-    try:
-        resp = requests.get(url, timeout=60)
-        resp.raise_for_status()
-        with open(dest, "wb") as f:
-            f.write(resp.content)
-        print("ok")
-    except Exception as e:
-        print("erro:", e)
+    for url in tqdm(df["url"], desc="Baixando CSVs"):
         
+        # checa permissão de download de cada CSV
+        if not pode_rastrear(url, user_agent=USER_AGENT, robots_url=ROBOTS_URL):
+            raise RuntimeError(f"Bloqueado pelo robots.txt: {url}")
+        
+        filename = PurePosixPath(urlparse(url).path).name
+        dest = os.path.join(download_dir, filename)
+
+        # print(f"Baixando {filename} …", end=" ")
+        time.sleep(11)
+        try:
+            resp = requests.get(
+                url,
+                headers={"User-Agent": USER_AGENT}, 
+                timeout=60
+            )
+            
+            resp.raise_for_status()
+            with open(dest, "wb") as f:
+                f.write(resp.content)
+            # print("ok")
+        except Exception as e:
+            print(f"erro: {e}")
+            errors += 1
+
+    print(f"Download de {len(df)} arquivos finalizado ({errors} erros)")
+
+def main():
+    salva_html(SEARCH_URL, HTML_PATH)
+    df_links = get_dataframe(HTML_PATH)
+    download_csvs(df_links, DOWNLOAD_DIR)
+    print("Extração de dados de acidentes concluída!")
+
+if __name__ == "__main__":
+    main()

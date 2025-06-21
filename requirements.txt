@@ -1,5 +1,6 @@
 pandas==2.3.0
 beautifulsoup4==4.13.4
 requests==2.32.4
+tqdm==4.67.1
 
 playwright==1.52.0
