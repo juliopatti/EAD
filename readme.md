@@ -6,13 +6,21 @@ Este projeto realiza **extração de dados públicos** das seguintes plataformas
 - [DNIT - Departamento Nacional de Infraestrutura de Transportes](https://servicos.dnit.gov.br)
 - [ANTT - Agência Nacional de Transportes Terrestres](https://dados.antt.gov.br)
 
+---
+
+## 🔒 Boas Práticas e Licenças
+
+Na extração dos dados, **respeitamos o arquivo `robots.txt`** de cada plataforma, garantindo a conformidade com suas políticas de acesso. Para evitar sobrecarga nos servidores, cada solicitação é seguida por um **intervalo de espera significativo (geralmente superior a 8 segundos)** antes da próxima.
+
+Os dados brutos extraídos e os dados processados resultantes deste estudo estão disponíveis sob licenças **Creative Commons (CC)**, conforme especificado pelas fontes originais.
+
+---
+
 ## 🚀 Execução
 
 O script principal para **extração bruta (mais de 10 mil arquivos)** é:
 
-```bash
 python raw_extraction.py
-```
 
 ⚠️ Este processo pode levar tempo significativo e exige conexão estável à internet.
 
@@ -20,38 +28,33 @@ python raw_extraction.py
 
 ## 🔧 Configuração do Ambiente
 
-1. **Crie o ambiente virtual:**
+1.  **Crie o ambiente virtual:**
 
-```bash
-python -m venv venv
-```
+    python -m venv venv
 
-2. **Ative o ambiente:**
+2.  **Ative o ambiente:**
 
-- Windows:
-  ```bash
-  .\venv\Scripts\activate
-  ```
-- Linux/Mac:
-  ```bash
-  source venv/bin/activate
-  ```
+    -   Windows:
+        .\venv\Scripts\activate
+    -   Linux/Mac:
+        source venv/bin/activate
 
-3. **Instale as dependências:**
+3.  **Instale as dependências:**
 
-```bash
-pip install -r requirements.txt
-```
+    pip install -r requirements.txt
 
-4. **Instale os navegadores do Playwright:**
+4.  **Instale os navegadores do Playwright:**
 
-```bash
-python -m playwright install
-```
+    python -m playwright install
+
+    ⚠️ **Para usuários Linux:** pode ser necessário instalar a seguinte dependência do sistema:
+
+    sudo apt-get install libavif16
 
 ---
 
-## 💡 Observações
+## 📊 Dados do Estudo
 
-- Ajustes regionais ou de intervalo de datas podem ser realizados diretamente no script `raw_extraction.py`.
-- Para aceleração ou paralelização da execução, considere o uso de bibliotecas como `concurrent.futures` ou `multiprocessing`.
+Os dados extraídos (brutos) e os dados úteis (lapidados e processados) deste estudo estão disponíveis para download e consulta na seguinte pasta do Google Drive:
+
+[Link para a pasta dos dados no Google Drive](https://drive.google.com/drive/folders/12FpgD2oiYrZAPZtlcBomZLEG6OGTC-PK?usp=sharing)
