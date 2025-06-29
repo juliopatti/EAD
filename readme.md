@@ -51,6 +51,15 @@ python raw_extraction.py
 
     sudo apt-get install libavif16
 
+5.  **Para a extração automática de dados brutos execute**
+
+    python raw_extraction.py
+
+
+6.  **Os dados de estudo particular advem da análise em get_brs_properties.ipynb**
+
+7.  **A aplicação desses dados lapidados pode ser vista em application_util_data.ipynb**
+
 ---
 
 ## 📊 Dados do Estudo
