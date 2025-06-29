@@ -2,5 +2,17 @@ pandas==2.3.0
 beautifulsoup4==4.13.4
 requests==2.32.4
 tqdm==4.67.1
+geopandas==1.1.0 
+geobr==0.2.2
+unidecode==1.4.0
+chardet==5.2.0
+srtm.py==0.3.7          # tem .py mesmo
+plotly_express==0.4.1
+nbformat>=4.2.0
+matplotlib==3.10.3
+seaborn==0.13.2
+geopy==2.4.1
+contextily==1.6.2
+ipykernel==6.29.5 
 
 playwright==1.52.0

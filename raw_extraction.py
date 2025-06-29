@@ -11,7 +11,6 @@ Chama, em sequência, os três scripts:
 import acidentes
 import geo_rod 
 import meteorologico
-from utils import organize_csvs_by_year
 
 def main():
     # executa o pipeline de acidentes
@@ -20,9 +19,6 @@ def main():
     geo_rod.main()
     # executa o pipeline meteorológico
     meteorologico.main()
-    
-    # correção de separação de anos
-    organize_csvs_by_year(base_dir="data/meteorologia")
 
 if __name__ == "__main__":
     main()
